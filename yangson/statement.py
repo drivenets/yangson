@@ -125,8 +125,8 @@ class Statement:
 class ModuleParser(Parser):
     """Parse YANG modules."""
 
-    unescape_map = {"n": "\n", "t": "\t", '"': '"',
-                    "\\": "\\"}  # type: dict[str,str]
+    unescape_map = { "n" : "\n", "t": "\t", '"': '"',
+                     "\\": "\\", "*":"*" } # type: dict[str,str]
     """Dictionary for mapping escape sequences to characters."""
 
     def __init__(self: "ModuleParser", text: str, name: YangIdentifier = None, rev: str = None):
