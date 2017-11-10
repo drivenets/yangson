@@ -579,11 +579,13 @@ class LeafrefType(LinkType):
         super().__init__(sctx, name)
         self.path = None
         self.ref_type = None
+        self.raw_path = None
 
     def _handle_properties(self: "LeafrefType", stmt: Statement, sctx: SchemaContext) -> None:
         super()._handle_properties(stmt, sctx)
+        self.raw_path = stmt.find1("path", required=True).argument
         self.path = XPathParser(
-            stmt.find1("path", required=True).argument, sctx).parse()
+            self.raw_path, sctx).parse()
 
     def canonical_string(self: "LeafrefType", val: ScalarValue) -> Optional[str]:
         return self.ref_type.canonical_string(val)
