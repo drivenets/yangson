@@ -42,6 +42,7 @@ This module implements the following classes:
 * Uint32Type: YANG uint32 type.
 * Uint64Type: YANG uint64 type.
 * UnionType: YANG union type.
+* ExtensinosType: YANG extension type.
 """
 import base64
 import binascii
@@ -237,6 +238,13 @@ class DataType:
         if self.name is not None:
             res["derived"] = self.name
         return res
+
+
+# we're not needing anything from the DataType superclass
+class ExtensionType:
+    def __init__(self, name, val):
+        self.name = name
+        self.val = val
 
 
 class EmptyType(DataType):

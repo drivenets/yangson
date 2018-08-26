@@ -47,7 +47,7 @@ from typing import Any, Optional
 import xml.etree.ElementTree as ET
 from .constraint import Must
 from .datatype import (DataType, LinkType,
-                       RawScalar, IdentityrefType)
+                       RawScalar, IdentityrefType, ExtensionType)
 from .enumerations import (Axis, ContentType, DefaultDeny,
                            NodeStatus, ValidationScope)
 from .exceptions import (
@@ -102,6 +102,8 @@ class SchemaNode:
         """Content type of the receiver."""
         self._status = None
         """Status of node definition."""
+        self.extensions = []
+        """Extensions to the type"""
 
     @property
     def qual_name(self: "SchemaNode") -> QualName:
@@ -269,7 +271,10 @@ class SchemaNode:
                               sctx: SchemaContext) -> None:
         """Dispatch actions for substatements of `stmt`."""
         for s in stmt.substatements:
-            if s.prefix:
+            # modified by DN team
+            if s.prefix == 'dn-ex':
+                key = s.prefix
+            elif s.prefix:
                 key = (
                     sctx.schema_data.modules[sctx.text_mid].prefix_map[s.prefix][0]
                     + ":" + s.keyword)
@@ -305,6 +310,10 @@ class SchemaNode:
         elif isinstance(xpath, Root):
             return self.schema_root()
         return None
+
+    def dn_ex(self, stmt: Statement, sctx: SchemaContext) -> None:
+        self.extensions.append(ExtensionType(name=stmt.keyword,
+                                             val=stmt.argument))
 
     def _noop(self: "SchemaNode", stmt: Statement, sctx: SchemaContext) -> None:
         pass
@@ -434,6 +443,7 @@ class SchemaNode:
         "units": "_units_stmt",
         "uses": "_uses_stmt",
         "when": "_when_stmt",
+        "dn-ex": "dn_ex",
     }
     """Map of statement keywords to callback methods."""
 
