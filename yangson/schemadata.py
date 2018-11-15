@@ -31,7 +31,8 @@ from .exceptions import (
     InvalidSchemaPath, BadYangLibraryData, CyclicImports, DefinitionNotFound,
     FeaturePrerequisiteError, InvalidFeatureExpression, ModuleNotFound,
     ModuleNotImplemented, ModuleNotImported, ModuleNotRegistered,
-    ModuleContentMismatch, MultipleImplementedRevisions, UnknownPrefix)
+    ModuleContentMismatch, MultipleImplementedRevisions, UnknownPrefix,
+    UnexpectedInput)
 from .parser import Parser
 from .statement import ModuleParser, Statement
 from .typealiases import (ModuleId, PrefName, QualName, RevisionDate,
@@ -181,8 +182,9 @@ class SchemaData:
                         res = ModuleParser(infile.read(), name, rev).parse()
                         mdata.path = fn
                 except (FileNotFoundError, PermissionError, ModuleContentMismatch):
-                    run += 1
-                    continue
+                    raise
+                except UnexpectedInput as e:
+                    raise ValueError(f'{fn}: {str(e)}') from e
                 return res
         raise ModuleNotFound(name, rev)
 
