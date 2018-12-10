@@ -164,6 +164,16 @@ class SchemaNode:
         dp = self.data_parent()
         return (dp.data_path() if dp else "") + "/" + self.iname()
 
+    def full_path(self) -> DataPath:
+        """Return the receiver's data path."""
+        node_name = self.name
+        parent_path = ''
+        if self.parent:
+            parent_path = self.parent.full_path()
+        if node_name is None:
+            return ''
+        return parent_path + "/" + node_name
+
     def state_roots(self: "SchemaNode") -> list[DataPath]:
         """Return a list of data paths to descendant state data roots."""
         return [r.data_path() for r in self._state_roots()]
