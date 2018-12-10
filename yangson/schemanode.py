@@ -164,14 +164,16 @@ class SchemaNode:
         dp = self.data_parent()
         return (dp.data_path() if dp else "") + "/" + self.iname()
 
-    def full_path(self) -> DataPath:
+    def full_rpc_path(self) -> DataPath:
         """Return the receiver's data path."""
         node_name = self.name
         parent_path = ''
         if self.parent:
-            parent_path = self.parent.full_path()
+            parent_path = self.parent.full_rpc_path()
         if node_name is None:
             return ''
+        if node_name in ('input', 'output'):
+            return parent_path
         return parent_path + "/" + node_name
 
     def state_roots(self: "SchemaNode") -> list[DataPath]:
