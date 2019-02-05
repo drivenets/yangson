@@ -164,6 +164,16 @@ class SchemaNode:
         dp = self.data_parent()
         return (dp.data_path() if dp else "") + "/" + self.iname()
 
+    def full_name(self):
+        parent = self.parent
+        return (self.name if parent and self.ns == parent.ns
+                else (self.ns + ':' + self.name if self.ns else
+                      self.name))
+
+    def full_path(self):
+        parent = self.parent
+        return (parent.full_path() if parent else '') + '/' + self.full_name()
+
     def state_roots(self) -> List[DataPath]:
         """Return a list of data paths to descendant state data roots."""
         return [r.data_path() for r in self._state_roots()]
