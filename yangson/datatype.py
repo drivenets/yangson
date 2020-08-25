@@ -521,7 +521,7 @@ class EnumerationType(DataType):
     def __init__(self: "EnumerationType", sctx: SchemaContext, name: YangIdentifier):
         """Initialize the class instance."""
         super().__init__(sctx, name)
-        self.enum = {}  # type: dict[str, int]
+        self.enum = {}  # type: dict[str, dict]
 
     def sorted_enums(self: "EnumerationType") -> list[tuple[str, int]]:
         """Return list of enum items sorted by value."""
@@ -543,11 +543,14 @@ class EnumerationType(DataType):
             vst = est.find1("value")
             if vst:
                 val = int(vst.argument)
-                self.enum[label] = val
+                self.enum[label] = {'val': val}
                 if val > nextval:
                     nextval = val
             else:
-                self.enum[label] = nextval
+                self.enum[label] = {'val': nextval}
+            for subst in est.substatements:
+                if subst.keyword == 'description':
+                    self.enum[label]['description'] = subst.argument
             nextval += 1
 
     def _handle_restrictions(self: "EnumerationType", stmt: Statement, sctx: SchemaContext) -> None:
