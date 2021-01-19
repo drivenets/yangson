@@ -591,6 +591,9 @@ class LeafrefType(LinkType):
         self.path = None
         self.ref_type = None
         self.raw_path = None
+        self.processed = False  # Use to distinguish if a LeafrefType was post-processed.
+                                # Added because modules-sequence ordering that caused unhandled exception
+                                # when post-processing the schema
 
     def _handle_properties(self: "LeafrefType", stmt: Statement, sctx: SchemaContext) -> None:
         super()._handle_properties(stmt, sctx)
@@ -627,10 +630,19 @@ class LeafrefType(LinkType):
         return [n for n in ns if str(n) == str(node)]
 
     def _post_process(self: "LeafrefType", tnode: "TerminalNode") -> None:
-        ref = tnode._follow_leafref(self.path, tnode)
-        if ref is None:
-            raise InvalidLeafrefPath(tnode.qual_name)
-        self.ref_type = ref.type
+        current_node = tnode
+        current_type = self
+
+        while isinstance(current_type, LeafrefType) and not current_type.processed:
+            ref = current_node._follow_leafref(current_type.path, current_node)
+            if ref is None:
+                raise InvalidLeafrefPath(current_node.qual_name)
+            current_type.ref_type = ref.type
+            current_type.processed = True
+
+            current_node = ref
+            current_type = ref.type
+
 
     def _type_digest(self: "LeafrefType", config: bool) -> dict[str, Any]:
         res = super()._type_digest(config)
