@@ -207,3 +207,5 @@ class DataModel:
             for dev in mod.find_all("deviation"):
                 self.schema._deviation_stmt(dev, sctx)
         self.schema._post_process()
+        # second post process to process leaves that could not be processed in the first run
+        self.schema._post_process()

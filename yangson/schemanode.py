@@ -710,7 +710,14 @@ class InternalNode(SchemaNode):
     def _post_process(self: "InternalNode") -> None:
         super()._post_process()
         for c in self.children:
-            c._post_process()
+            try:
+                c._post_process()
+            except AttributeError as e:
+                if not hasattr(self, 'has_error'):
+                    self.has_error = {}
+
+                if self.has_error.get(id(c), False):
+                    raise Exception("running post process for the second time did not resolve post process issue")
 
     def _add_mandatory_child(self: "InternalNode", node: SchemaNode) -> None:
         """Add `node` to the set of mandatory children."""
@@ -1112,7 +1119,12 @@ class TerminalNode(SchemaNode):
 
     def _post_process(self: "TerminalNode") -> None:
         super()._post_process()
+        process_type = 'leafref_type_processed'
+        if getattr(self, process_type, False):
+            return
         self.type._post_process(self)
+        setattr(self, process_type, True)
+
 
     def _is_identityref(self: "TerminalNode") -> bool:
         return isinstance(self.type, IdentityrefType)
@@ -1219,8 +1231,12 @@ class SequenceNode(DataNode):
 
     def _post_process(self: "SequenceNode") -> None:
         super()._post_process()
+        process = "sequence_node_process"
+        if getattr(self, process, False):
+            return
         if self.min_elements > 0:
             self.parent._add_mandatory_child(self)
+        setattr(self, process, True)
 
     def _min_elements_stmt(self: "SequenceNode", stmt: Statement,
                            sctx: SchemaContext) -> None:
@@ -1403,12 +1419,16 @@ class ListNode(SequenceNode, InternalNode):
 
     def _post_process(self: "ListNode") -> None:
         super()._post_process()
+        process = "list_node_processed"
+        if getattr(self, process, False):
+            return
         for k in self.keys:
             kn = self.get_data_child(*k)
             self._key_members.append(kn.iname())
             if not kn._mandatory:
                 kn._mandatory = True
                 self._add_mandatory_child(kn)
+        setattr(self, process, True)
 
     def _key_stmt(self: "ListNode", stmt: Statement,
                   sctx: SchemaContext) -> None:
@@ -1512,8 +1532,12 @@ class ChoiceNode(InternalNode):
 
     def _post_process(self: "ChoiceNode") -> None:
         super()._post_process()
+        process = "choice_node_process"
+        if getattr(self, process, False):
+            return
         if self.mandatory:
             self.parent._add_mandatory_child(self)
+        setattr(self, process, True)
 
     def _tree_line_prefix(self: "ChoiceNode") -> str:
         return super()._tree_line_prefix() + (
@@ -1583,10 +1607,14 @@ class LeafNode(DataNode, TerminalNode):
 
     def _post_process(self: "LeafNode") -> None:
         super()._post_process()
+        process = "leaf_node_process"
+       if getattr(self, process, False):
+            return
         if self._mandatory:
             self.parent._add_mandatory_child(self)
         elif self._default is not None:
             self._default = self.type.from_yang(self._default)
+        setattr(self, process, True)
 
     def _tree_line(self: "LeafNode", no_type: bool = False) -> str:
         res = super()._tree_line() + ("" if self._mandatory else "?")
@@ -1647,9 +1675,13 @@ class LeafListNode(SequenceNode, TerminalNode):
 
     def _post_process(self: "LeafListNode") -> None:
         super()._post_process()
+        process = 'leaf_list_process'
+        if getattr(self, process, False):
+            return
         if self._default is not None:
             self._default = ArrayValue(
                 [self.type.from_yang(v) for v in self._default])
+        setattr(self, process, True)
 
     def _tree_line(self: "LeafListNode", no_type: bool = False) -> str:
         res = super()._tree_line()
@@ -1711,8 +1743,12 @@ class AnyContentNode(DataNode):
         return ""
 
     def _post_process(self: "AnyContentNode") -> None:
+        process = "any_connect_process"
+        if getattr(self, process, False):
+            return
         if self._mandatory:
             self.parent._add_mandatory_child(self)
+        setattr(self, process, False)
 
 
 class AnydataNode(AnyContentNode):
