@@ -827,7 +827,7 @@ class InternalNode(SchemaNode):
             adj.bases.add(bid)
             badj = sctx.schema_data.identity_adjs.setdefault(
                 bid, IdentityAdjacency())
-            badj.derivs.add(id)
+            badj.derivs[id] = None
         sctx.schema_data.identity_adjs[id] = adj
 
     def _list_stmt(self: "InternalNode", stmt: Statement, sctx: SchemaContext) -> None:

@@ -46,7 +46,7 @@ class IdentityAdjacency:
 
     def __init__(self: "IdentityAdjacency"):
         self.bases = set()  # type: MutableSet[QualName]
-        self.derivs = set()  # type: MutableSet[QualName]
+        self.derivs = {} # type: dict[QualName, None]
 
 
 class SchemaContext:
@@ -82,8 +82,8 @@ class ModuleData:
         """Corresponding (sub)module statements."""
         self.path = None  # type: str
         """Path to the yang file this module was initialized from"""
-        self.submodules = set()  # type: MutableSet[ModuleId]
-        """Set of submodules."""
+        self.submodules = {} # type: dict[ModuleId, None]
+        """Ordered set of submodules."""
 
 
 class SchemaData:
@@ -156,7 +156,7 @@ class SchemaData:
                         self.modules[smid] = sdata
                         self.modules_by_name[sname] = sdata
                         self.modules_by_ns[sdata.xml_namespace] = sdata
-                        mdata.submodules.add(smid)
+                        mdata.submodules[smid] = None
                         submod = self._load_module(sname, srev, sdata)
                         sdata.statement = submod
                         bt = submod.find1("belongs-to", name, required=True)
@@ -189,11 +189,11 @@ class SchemaData:
         raise ModuleNotFound(name, rev)
 
     def _process_imports(self: "SchemaData") -> None:
-        impl = set(self.implement.items())
+        impl = list(self.implement.items())
         if len(impl) == 0:
             return
         deps = {mid: set() for mid in impl}
-        impby = {mid: set() for mid in impl}
+        impby = {mid: {} for mid in impl}
         for mid in self.modules:
             mod = self.modules[mid].statement
             for impst in mod.find_all("import"):
@@ -210,14 +210,14 @@ class SchemaData:
                 mm = self.modules[mid].main_module
                 if mm in impl and imid in impl:
                     deps[mm].add(imid)
-                    impby[imid].add(mm)
+                    impby[imid][mm] = None
         free = [mid for mid in deps if len(deps[mid]) == 0]
         if not free:
             raise CyclicImports()
         while free:
             nid = free.pop()
             self._module_sequence.append(nid)
-            self._module_sequence.extend(self.modules[nid].submodules)
+            self._module_sequence.extend(self.modules[nid].submodules.keys())
             for mid in impby[nid]:
                 deps[mid].remove(nid)
                 if len(deps[mid]) == 0:
@@ -462,24 +462,27 @@ class SchemaData:
                 return True
         return False
 
-    def derived_from(self: "SchemaData", identity: QualName) -> MutableSet[QualName]:
+    def derived_from(self: "SchemaData", identity: QualName) -> dict:
         """Return list of identities transitively derived from `identity`."""
         try:
             res = self.identity_adjs[identity].derivs
         except KeyError:
-            return set()
-        for id in res.copy():
-            res |= self.derived_from(id)
+            return {}
+        for id in res.copy().keys():
+            res.update(self.derived_from(id))
         return res
 
-    def derived_from_all(self: "SchemaData", identities: list[QualName]) -> MutableSet[QualName]:
+    def derived_from_all(self: "SchemaData", identities: list[QualName]) -> dict[QualName, None]:
         """Return list of identities transitively derived from all `identity`."""
         if not identities:
-            return set()
+            return {}
         res = self.derived_from(identities[0])
+        res_set = set(res.keys())
+        # intersection
         for id in identities[1:]:
-            res &= self.derived_from(id)
-        return res
+            res_set &= self.derived_from(id).keys()
+        res = {k: v for k, v in res.items() if k in res_set}
+        return res.keys()
 
     def if_features(self: "SchemaData", stmt: Statement, mid: ModuleId) -> bool:
         """Evaluate ``if-feature`` substatements on a statement, if any.
