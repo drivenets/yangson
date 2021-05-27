@@ -7,7 +7,7 @@ colorama==0.3.7
 docutils==0.12
 imagesize==0.7.0
 jinja2>=2.8
-lazy-object-proxy==1.2.2
+lazy-object-proxy==1.4.3
 MarkupSafe==0.23
 packaging==16.8
 pkginfo==1.4.1
