@@ -1613,7 +1613,12 @@ class LeafNode(DataNode, TerminalNode):
         if self._mandatory:
             self.parent._add_mandatory_child(self)
         elif self._default is not None:
-            self._default = self.type.from_yang(self._default)
+            # EXCEPTION ADDED BY DRIVENETS(eydayan)
+            try:
+                self._default = self.type.from_yang(self._default)
+            except AttributeError:
+                # A leafref cannot have a default value. See SW-58896.
+                raise Exception(f'leafref {self.name} has a default value which is not supported')
         setattr(self, process, True)
 
     def _tree_line(self: "LeafNode", no_type: bool = False) -> str:
