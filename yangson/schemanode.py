@@ -1618,7 +1618,7 @@ class LeafNode(DataNode, TerminalNode):
                 self._default = self.type.from_yang(self._default)
             except AttributeError:
                 # A leafref cannot have a default value. See SW-58896.
-                raise Exception(f'leafref {self.name} has a default value which is not supported')
+                raise Exception(f'Error when processing leafref {self.full_path()}. POssibly, it has a default value which is not supported (SW-58896)')
         setattr(self, process, True)
 
     def _tree_line(self: "LeafNode", no_type: bool = False) -> str:
