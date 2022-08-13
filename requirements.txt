@@ -1,14 +1,14 @@
 alabaster==0.7.7
-appdirs==1.4.0
+appdirs==1.4.3
 args==0.1.0
-Babel==2.3.3
+Babel==2.8.0
 clint==0.5.1
 colorama==0.3.7
 docutils==0.12
 imagesize==0.7.0
 jinja2>=2.8
 lazy-object-proxy==1.4.3
-MarkupSafe==0.23
+MarkupSafe==2.0.1
 packaging==16.8
 pkginfo==1.4.1
 Pygments==2.6.1
@@ -16,13 +16,13 @@ pyparsing==2.1.10
 pytest==3.10.1
 PyXB==1.2.4
 requests==2.25.1
-certifi==2018.1.18
+certifi==2020.6.20
 requests-toolbelt==0.7.0
-six==1.14.0
+six==1.16.0
 snowballstemmer==1.2.1
 Sphinx==1.5.3
 sphinx-rtd-theme==0.1.9
 twine==1.8.1
-wrapt==1.11.2
+wrapt==1.12.1
 # packages installed by apt (ubuntu versions differ)
 #pytz==2016.3
