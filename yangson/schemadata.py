@@ -173,10 +173,7 @@ class SchemaData:
         for d in self.module_search_path:
             run = 0
             while run < 2:
-                fn = f"{d}/{name}"
-                if rev and run == 0:
-                    fn += "@" + rev
-                fn += ".yang"
+                fn = f"{d}/{name}.yang"
                 try:
                     with open(fn, encoding='utf-8') as infile:
                         res = ModuleParser(infile.read(), name, rev).parse()
