@@ -178,7 +178,22 @@ class SchemaData:
                     with open(fn, encoding='utf-8') as infile:
                         res = ModuleParser(infile.read(), name, rev).parse()
                         mdata.path = fn
-                except (FileNotFoundError, PermissionError, ModuleContentMismatch):
+                except FileNotFoundError:
+                    '''
+                    This fix will be probably be deleted in the future.
+                    It should fix the issue when upgrade version A->B when
+                    yang files in version A don't contain revision in their name
+                    and yang files in version B contain revision in their name
+                    '''
+                    if rev:
+                        fn = f"{d}/{name}@{rev}.yang"
+                        try:
+                            with open(fn, encoding='utf-8') as infile:
+                                return ModuleParser(infile.read()).parse()
+                        except FileNotFoundError:
+                            raise
+                    raise
+                except (PermissionError, ModuleContentMismatch):
                     raise
                 except UnexpectedInput as e:
                     raise ValueError(f'{fn}: {str(e)}') from e
