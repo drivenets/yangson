@@ -148,8 +148,11 @@ class Must(Constraint):
     """Class representing the constraint specified by a "must" statement."""
 
     def __init__(self: "Must", expression: Expr, error_tag: str = None,
-                 error_message: str = None):
+                 error_message: str = None, dn_error_message = None):  # DN(SW-167219): yang 'must' dynamic (non standard) error messages
         """Initialize the class instance."""
         super().__init__(
             error_tag if error_tag else "must-violation", error_message)
         self.expression = expression
+
+        # DN(SW-167219): yang 'must' dynamic (non standard) error messages
+        self.dn_error_message = dn_error_message

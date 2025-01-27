@@ -361,7 +361,12 @@ class SchemaNode:
         mex = xpp.parse()
         if not xpp.at_end():
             raise InvalidArgument(stmt.argument)
-        self.must.append(Must(mex, *stmt.get_error_info()))
+
+        # DN(SW-167219): yang 'must' dynamic (non standard) error messages
+        dn_error = stmt.find1('err-msg', pref='dn-ex')
+        dn_error_message = dn_error.argument if dn_error else None
+
+        self.must.append(Must(mex, *stmt.get_error_info(), dn_error_message))
 
     def _deviate_must(self: "SchemaNode", stmt: Statement,
                       sctx: SchemaContext, action: str) -> None:
