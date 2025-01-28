@@ -104,7 +104,8 @@ class XPathParser(Parser):
                 return op1
             self.adv_skip_ws()
             op2 = self._relational_expr()
-            op1 = EqualityExpr(op1, op2, negate)
+            # DN(SW-160763): passing 'sctx' param as part of 'must' support
+            op1 = EqualityExpr(op1, op2, negate, self.sctx)
 
     def _relational_expr(self: "XPathParser") -> Expr:
         op1 = self._additive_expr()

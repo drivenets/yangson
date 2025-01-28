@@ -230,9 +230,15 @@ class EqualityExpr(BinaryExpr):
 
     _precedence = 2
 
-    def __init__(self: "EqualityExpr", left: Expr, right: Expr, negate: bool):
+    # DN(SW-160763): added 'sctx' arg as part of 'must' support
+    def __init__(self: "EqualityExpr", left: Expr, right: Expr, negate: bool, sctx: SchemaContext):
         super().__init__(left, right)
         self.negate = negate
+
+        # DN(SW-160763): saving the current Context(the module name is the
+        # important context), in order to calculate the expanded-name (lexical
+        # representation) of identityrefs in DN's EqualityExprs
+        self.sctx = sctx
 
     def __str__(self: "EqualityExpr") -> str:
         return self._as_str("!=" if self.negate else "=")
