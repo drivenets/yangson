@@ -174,7 +174,7 @@ class SchemaNode:
         parent = self.parent
         return (parent.full_path() if parent else '') + '/' + self.full_name()
 
-    def state_roots(self) -> List[DataPath]:
+    def state_roots(self) -> list[DataPath]:
         """Return a list of data paths to descendant state data roots."""
         return [r.data_path() for r in self._state_roots()]
 
@@ -1621,7 +1621,7 @@ class LeafNode(DataNode, TerminalNode):
     def _post_process(self: "LeafNode") -> None:
         super()._post_process()
         process = "leaf_node_process"
-       if getattr(self, process, False):
+        if getattr(self, process, False):
             return
         if self._mandatory:
             self.parent._add_mandatory_child(self)
