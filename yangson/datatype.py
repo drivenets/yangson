@@ -74,6 +74,7 @@ class DataType:
         """Initialize the class instance."""
         self.sctx = sctx
         self.default = None
+        self.default_str = None
         self.name = name
         self.error_tag = None
         self.error_message = None
@@ -215,6 +216,7 @@ class DataType:
             dfst = tdef.find1("default")
             if dfst:
                 res.default = res.from_yang(dfst.argument)
+                res.default_str = dfst.argument
                 if res.default is None:
                     raise InvalidArgument(dfst.argument)
         res._handle_restrictions(stmt, sctx)

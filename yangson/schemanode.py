@@ -1044,6 +1044,7 @@ class TerminalNode(SchemaNode):
         super().__init__()
         self.type: DataType = None
         self._default: Optional[Value] = None
+        self._default_str: Optional[Value] = None
         self._units: Optional[str] = None
 
     def content_type(self: "TerminalNode") -> ContentType:
@@ -1610,6 +1611,13 @@ class LeafNode(DataNode, TerminalNode):
             return self._default
         return self.type.default
 
+    @property
+    def default_str(self) -> Optional[str]:
+        """String of default value of the receiver, if any."""
+        if self.mandatory: return None
+        if self._default_str is not None: return self._default_str
+        return self.type.default_str
+
     def _post_process(self: "LeafNode") -> None:
         super()._post_process()
         process = "leaf_node_process"
@@ -1633,6 +1641,7 @@ class LeafNode(DataNode, TerminalNode):
     def _default_stmt(self: "LeafNode", stmt: Statement,
                       sctx: SchemaContext) -> None:
         self._default = stmt.argument
+        self._default_str = stmt.argument
 
     def _deviate_default(self: "LeafNode", stmt: Statement,
                          sctx: SchemaContext, action: str) -> None:
@@ -1655,6 +1664,14 @@ class LeafListNode(SequenceNode, TerminalNode):
         return (None if self.type.default is None
                 else ArrayValue([self.type.default]))
 
+    @property
+    def default_str(self) -> Optional[str]:
+        """String default value of the receiver, if any."""
+        if self.mandatory: return None
+        if self._default_str is not None: return self._default_str
+        return (None if self.type.default_str is None
+                else ArrayValue([self.type.default_str]))
+
     def _yang_class(self: "LeafListNode") -> str:
         return "leaf-list"
 
@@ -1667,8 +1684,10 @@ class LeafListNode(SequenceNode, TerminalNode):
                       stmt: Statement, sctx: SchemaContext) -> None:
         if self._default is None:
             self._default = [stmt.argument]
+            self._default_str = [stmt.argument]
         else:
             self._default.append(stmt.argument)
+            self._default_str.append(stmt.argument)
 
     def _deviate_default(self: "LeafListNode", stmt: Statement,
                          sctx: SchemaContext, action: str) -> None:
