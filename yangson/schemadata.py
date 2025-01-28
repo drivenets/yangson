@@ -454,7 +454,7 @@ class SchemaData:
             dstmt = stmt._get_scoped_definition(loc, kw)
             if dstmt:
                 return (dstmt, sctx)
-        for mid in {did} | self.modules[did].submodules:
+        for mid in {did} | self.modules[did].submodules.keys():
             dstmt = self.modules[mid].statement.find1(kw, loc)
             if dstmt:
                 return (dstmt, SchemaContext(
